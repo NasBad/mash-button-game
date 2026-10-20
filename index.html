@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MASH THE BUTTON!!!</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    font-family: 'Comic Sans MS', 'Marker Felt', 'Chalkboard SE', cursive, sans-serif;
+    background: linear-gradient(60deg, #ff0066, #ff9900, #ffee00, #33ff66, #00ccff, #9933ff);
+    background-size: 400% 400%;
+    animation: bgshift 8s ease infinite;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  @keyframes bgshift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  body.shake { animation: bgshift 8s ease infinite, screenshake 0.15s linear infinite; }
+  @keyframes screenshake {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(3px,-3px) rotate(0.3deg); }
+    50% { transform: translate(-3px,3px) rotate(-0.3deg); }
+    75% { transform: translate(3px,3px) rotate(0.2deg); }
+    100% { transform: translate(-3px,-3px); }
+  }
+  .wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; width: 100%; position: relative;
+  }
+  h1 {
+    color: #fff;
+    text-shadow: 3px 3px 0 #ff0066, -2px -2px 0 #00ccff, 0 0 20px rgba(255,255,255,0.8);
+    font-size: clamp(28px, 7vw, 64px);
+    text-align: center;
+    margin: 10px 0 0 0;
+    letter-spacing: 2px;
+    -webkit-text-stroke: 1px #222;
+  }
+  #combo {
+    color: #fff;
+    font-size: clamp(16px, 4vw, 26px);
+    text-shadow: 2px 2px 0 #333;
+    margin: 4px 0 10px 0;
+    min-height: 1.4em;
+    text-align: center;
+    transition: transform 0.08s;
+  }
+  .barOuter {
+    width: min(80vw, 520px);
+    height: 48px;
+    background: rgba(0,0,0,0.35);
+    border: 5px solid #fff;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(0,0,0,0.4), inset 0 0 10px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+    position: relative;
+  }
+  .barInner {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #ff0066, #ff9900, #ffee00, #33ff66, #00ccff);
+    background-size: 300% 100%;
+    animation: barflow 2s linear infinite;
+    border-radius: 30px 0 0 30px;
+    transition: width 0.08s linear;
+    position: relative;
+  }
+  @keyframes barflow {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 0%; }
+  }
+  .barLabel {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: bold; font-size: 20px;
+    text-shadow: 2px 2px 2px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+  #bigButton {
+    width: min(55vw, 260px);
+    height: min(55vw, 260px);
+    border-radius: 50%;
+    border: 8px solid #fff;
+    background: radial-gradient(circle at 35% 30%, #ff5ca3, #ff0066 60%, #b3004d 100%);
+    color: #fff;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 0 #7a0033, 0 15px 25px rgba(0,0,0,0.4), 0 0 40px rgba(255,0,102,0.6);
+    cursor: pointer;
+    transition: transform 0.05s;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #bigButton:active {
+    transform: scale(0.88) rotate(-2deg);
+    box-shadow: 0 2px 0 #7a0033, 0 5px 10px rgba(0,0,0,0.4);
+  }
+  .punch {
+    animation: punch 0.12s ease;
+  }
+  @keyframes punch {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.82) rotate(4deg); }
+    100% { transform: scale(1); }
+  }
+  #floaters {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .floater {
+    position: absolute;
+    font-size: 28px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000;
+    animation: floatUp 0.9s ease-out forwards;
+    pointer-events: none;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(-120px) scale(1.4) rotate(20deg); }
+  }
+  #overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 999;
+  }
+  #overlay.show { display: flex; }
+  #popup {
+    background: linear-gradient(160deg, #fff6, #fff);
+    border: 8px solid #ffee00;
+    border-radius: 30px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 0 60px rgba(255,255,0,0.8);
+    animation: popin 0.4s cubic-bezier(.17,.89,.32,1.49);
+    max-width: 90vw;
+  }
+  @keyframes popin {
+    0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  #popup h2 {
+    font-size: clamp(28px, 6vw, 48px);
+    margin: 0 0 14px 0;
+    background: linear-gradient(90deg, #ff0066, #ff9900, #33cc33, #0099ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  #winVideo {
+    display: block;
+    width: min(80vw, 480px);
+    max-height: 60vh;
+    border-radius: 18px;
+    border: 4px solid #333;
+    background: #000;
+  }
+  #videoFallback {
+    display: none;
+    width: min(80vw, 480px);
+    padding: 30px 10px;
+    font-size: clamp(14px, 3vw, 18px);
+    color: #a33;
+  }
+  #popup p { font-size: clamp(16px, 3vw, 22px); color: #333; margin: 14px 0 20px 0; }
+  #popup button {
+    font-size: 20px;
+    padding: 14px 30px;
+    border-radius: 20px;
+    border: none;
+    background: linear-gradient(90deg,#00ccff,#33ff66);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #0a8a5a;
+  }
+  #popup button:active { transform: translateY(4px); box-shadow: 0 2px 0 #0a8a5a; }
+  .confetti {
+    position: fixed; top: -20px;
+    width: 12px; height: 12px;
+    z-index: 1000;
+    pointer-events: none;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0.2; }
+  }
+  footer {
+    position: absolute; bottom: 8px; width: 100%; text-align: center;
+    color: rgba(255,255,255,0.8); font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SMASH THE BUTTON!! 🔥</h1>
+  <div id="combo">Get ready to go BONKERS 🤪</div>
+  <div class="barOuter">
+    <div class="barInner" id="bar"></div>
+    <div class="barLabel" id="barLabel">0%</div>
+  </div>
+  <button id="bigButton">💥 PRESS ME 💥</button>
+  <div id="floaters"></div>
+  <footer>made for maximum silliness · tap/click FAST</footer>
+</div>
+
+<div id="overlay">
+  <div id="popup">
+    <h2 id="popupTitle">🎉 YOU DID IT!! 🎉</h2>
+    <video id="winVideo" src="win-video.mp4" playsinline controls></video>
+    <div id="videoFallback">
+      Couldn't find <code>win-video.mp4</code> in the game folder — drop your video file there with that exact name and reload!
+    </div>
+    <p id="popupMsg">You are a BUTTON SMASHING LEGEND!</p>
+    <button id="againBtn">PLAY AGAIN 🚀</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const bar = document.getElementById('bar');
+  const barLabel = document.getElementById('barLabel');
+  const btn = document.getElementById('bigButton');
+  const combo = document.getElementById('combo');
+  const overlay = document.getElementById('overlay');
+  const popupTitle = document.getElementById('popupTitle');
+  const popupMsg = document.getElementById('popupMsg');
+  const againBtn = document.getElementById('againBtn');
+  const floaters = document.getElementById('floaters');
+  const winVideo = document.getElementById('winVideo');
+  const videoFallback = document.getElementById('videoFallback');
+  const body = document.body;
+
+  winVideo.addEventListener('error', function(){
+    winVideo.style.display = 'none';
+    videoFallback.style.display = 'block';
+  });
+
+  let progress = 0;
+  let gameOver = false;
+  let lastPressTime = 0;
+  let pressCount = 0;
+
+  const DECAY_PER_TICK = 1.1;   // how much the bar drops per tick
+  const TICK_MS = 100;          // decay tick speed
+  const FILL_PER_PRESS = 3.6;   // how much one press fills the bar
+
+  const encourage = [
+    "FASTER!! 🐇", "GO GO GO!!", "YOU GOT THIS!! 💪", "SMASH IT!! 👊",
+    "WHOA SPEEDY!! ⚡", "KEEP GOING!! 🌈", "ALMOST THERE!! 🎯", "BOOM BOOM BOOM!! 💥",
+    "UNSTOPPABLE!! 🚀", "MASH MASH MASH!! 🤪"
+  ];
+  const dropMessages = [
+    "oops it's slipping!! 😱", "quick quick quick!! 😬", "don't stop now!! 😵",
+    "catch it!! 🪂", "uh oh!! 🫠"
+  ];
+  const winTitles = ["🎉 YOU DID IT!! 🎉", "🏆 CHAMPION BUTTON MASHER!! 🏆", "🌟 LEGENDARY!! 🌟", "🔥 ON FIRE!! 🔥"];
+  const winMsgs = [
+    "You are a BUTTON SMASHING LEGEND!",
+    "Your finger deserves a medal! 🥇",
+    "That button never saw it coming!",
+    "World record speed! Probably! 😂"
+  ];
+
+  // ---- Sound effects via Web Audio (no files needed) ----
+  let actx;
+  function ctx(){
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    return actx;
+  }
+  function beep(freq, dur, type, vol, delay){
+    try {
+      const c = ctx();
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = type || 'square';
+      o.frequency.value = freq;
+      g.gain.value = (vol !== undefined ? vol : 0.15);
+      o.connect(g); g.connect(c.destination);
+      const t = c.currentTime + (delay||0);
+      o.start(t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.stop(t + dur);
+    } catch(e) {}
+  }
+  function clickSound(){
+    const freq = 300 + Math.random()*500;
+    beep(freq, 0.08, 'square', 0.1);
+  }
+  function fanfare(){
+    const notes = [523.25, 659.25, 784.0, 1046.5, 1318.5];
+    notes.forEach((n,i)=> beep(n, 0.3, 'triangle', 0.18, i*0.12));
+  }
+  function sadSound(){
+    beep(220, 0.15, 'sawtooth', 0.08);
+    beep(160, 0.2, 'sawtooth', 0.08, 0.12);
+  }
+
+  function spawnFloater(){
+    const f = document.createElement('div');
+    f.className = 'floater';
+    const emojis = ['💥','⭐','🔥','✨','👊','🚀','😆'];
+    f.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const btnRect = btn.getBoundingClientRect();
+    f.style.left = (btnRect.left + btnRect.width/2 - 14 + (Math.random()*80-40)) + 'px';
+    f.style.top = (btnRect.top + btnRect.height/2) + 'px';
+    floaters.appendChild(f);
+    setTimeout(()=> f.remove(), 950);
+  }
+
+  function updateBar(){
+    progress = Math.max(0, Math.min(100, progress));
+    bar.style.width = progress + '%';
+    barLabel.textContent = Math.round(progress) + '%';
+    if (progress > 70) {
+      body.classList.add('shake');
+    } else {
+      body.classList.remove('shake');
+    }
+  }
+
+  function randomCombo(list){
+    return list[Math.floor(Math.random()*list.length)];
+  }
+
+  function press(){
+    if (gameOver) return;
+    pressCount++;
+    progress += FILL_PER_PRESS;
+    clickSound();
+    btn.classList.remove('punch');
+    void btn.offsetWidth;
+    btn.classList.add('punch');
+    spawnFloater();
+
+    if (progress >= 100) {
+      win();
+      return;
+    }
+
+    if (pressCount % 6 === 0) {
+      combo.textContent = randomCombo(encourage);
+      combo.style.transform = 'scale(1.25)';
+      setTimeout(()=> combo.style.transform = 'scale(1)', 120);
+    }
+    updateBar();
+  }
+
+  function decayTick(){
+    if (gameOver) return;
+    const now = Date.now();
+    const idleTime = now - lastPressTime;
+    // decay faster the longer you've been idle
+    let drop = DECAY_PER_TICK;
+    if (idleTime > 400) drop *= 1.8;
+    if (idleTime > 1000) drop *= 2.2;
+    progress -= drop;
+    if (progress < 25 && progress > 0 && Math.random() < 0.03) {
+      combo.textContent = randomCombo(dropMessages);
+    }
+    updateBar();
+  }
+
+  function spawnConfetti(){
+    const colors = ['#ff0066','#ff9900','#ffee00','#33ff66','#00ccff','#9933ff','#ffffff'];
+    const count = 90;
+    for (let i=0;i<count;i++){
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random()*100 + 'vw';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      const isCircle = Math.random() < 0.5;
+      if (isCircle) c.style.borderRadius = '50%';
+      const size = 6 + Math.random()*10;
+      c.style.width = size + 'px';
+      c.style.height = size + 'px';
+      const duration = 1.8 + Math.random()*1.8;
+      c.style.animationDuration = duration + 's';
+      c.style.animationDelay = (Math.random()*0.4) + 's';
+      document.body.appendChild(c);
+      setTimeout(()=> c.remove(), (duration+0.5)*1000);
+    }
+  }
+
+  function win(){
+    gameOver = true;
+    progress = 100;
+    updateBar();
+    body.classList.remove('shake');
+    fanfare();
+    spawnConfetti();
+    popupTitle.textContent = randomCombo(winTitles);
+    popupMsg.textContent = randomCombo(winMsgs) + ` (${pressCount} smashes!)`;
+    overlay.classList.add('show');
+    winVideo.style.display = '';
+    videoFallback.style.display = 'none';
+    winVideo.currentTime = 0;
+    winVideo.play().catch(()=>{});
+  }
+
+  function reset(){
+    gameOver = false;
+    progress = 0;
+    pressCount = 0;
+    lastPressTime = Date.now();
+    combo.textContent = "Get ready to go BONKERS 🤪";
+    updateBar();
+    overlay.classList.remove('show');
+    winVideo.pause();
+  }
+
+  btn.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    lastPressTime = Date.now();
+    press();
+  });
+  // Prevent double-firing from click after pointerdown on touch devices
+  btn.addEventListener('click', function(e){ e.preventDefault(); });
+
+  againBtn.addEventListener('click', function(){
+    sadSoundSkip();
+    reset();
+  });
+  function sadSoundSkip(){ beep(440, 0.1, 'triangle', 0.1); }
+
+  setInterval(decayTick, TICK_MS);
+  updateBar();
+})();
+</script>
+</body>
+</html>
